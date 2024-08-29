@@ -1,0 +1,12 @@
+name: Pass Immediately
+
+on: pull_request
+
+jobs:
+  pass-immediately:
+    name: Pass Immediately
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: echo pass
