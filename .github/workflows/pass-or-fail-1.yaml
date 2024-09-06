@@ -1,0 +1,40 @@
+name: Pass or Fail 1
+
+on: pull_request
+
+jobs:
+  fail-new-spec:
+    name: Pass or Fail 1
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Pass or Fail
+      run: |
+        set +o pipefail # Disable pipefail
+        set +e # Disable exit on error
+
+        CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
+
+        if [[ -z "$CHANGED_SPECS" ]]; then
+          echo "No changed specs"
+          exit 0
+        fi
+
+        EXIT_CODE=0
+        for SPEC in $CHANGED_SPECS; do
+          echo "SPEC: $SPEC"
+          if grep -q "fail1" ; then
+            echo "Contains 'fail1'"
+            EXIT_CODE=1
+          else
+            echo "Does not contain 'fail1'"
+          fi
+          echo
+        done
+        exit $EXIT_CODE
+
