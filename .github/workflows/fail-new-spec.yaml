@@ -17,6 +17,7 @@ jobs:
       run: |
         set +o pipefail # Disable pipefail
         set +e # Disable exit on error
+
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
 
         if [[ -z "$CHANGED_SPECS" ]]; then
