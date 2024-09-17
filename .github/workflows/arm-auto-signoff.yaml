@@ -19,4 +19,4 @@ jobs:
       with:
         script: |
           const addLabel = require('./.github/workflows/scripts/add-label.js')
-          await addLabel({github, context, "ARMAutoSignoff"});
+          await addLabel({ github, context }, "ARMAutoSignoff");
