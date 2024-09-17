@@ -1,4 +1,4 @@
-name: Add ARMAutoSignoff
+name: ARMAutoSignoff
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   add-arm-auto-signoff:
-    name: Add Label ARMAutoSignoff
+    name: ARMAutoSignoff
 
     runs-on: ubuntu-latest
 
