@@ -1,6 +1,6 @@
 // @ts-check
 
-import { execSync } from "child_process";
+const { execSync } = require("child_process");
 
 /**
  * @param {string} [baseCommitish="HEAD^"] Defaults to "HEAD^".
@@ -8,7 +8,7 @@ import { execSync } from "child_process";
  * @param {string} [diffFilter="d"] Defaults to "d".
  * @returns {string[]}
  */
-export function getChangedSwaggerFiles(
+function getChangedSwaggerFiles(
   baseCommitish = "HEAD^",
   targetCommitish = "HEAD",
   diffFilter = "d"
@@ -29,3 +29,5 @@ function execSyncRoot(command) {
     cwd: process.env.GITHUB_WORKSPACE,
   });
 }
+
+module.exports = { getChangedSwaggerFiles };
