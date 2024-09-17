@@ -24,6 +24,7 @@ function getChangedSwaggerFiles(
  * @param {string} command
  */
 function execSyncRoot(command) {
+  // TODO: Handle errors
   return execSync(command, {
     encoding: "utf8",
     cwd: process.env.GITHUB_WORKSPACE,
