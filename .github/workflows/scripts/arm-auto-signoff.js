@@ -24,18 +24,22 @@ module.exports = async ({ github, context, core }) => {
     f.includes("/resource-manager/")
   );
 
+  core.info(`Changed files containing path '/resource-manager': ${changedRmFiles}`);
+
   // PR represents incremental changes to an existing resource provider
   if (changedRmFiles.length == 0) {
+    core.info("No changes to swagger files containing path '/resource-manager/'");
     return;
   }
   if (changedRmFiles.some((f) => !specFolderExistsInTargetBranch(f))) {
+    core.info("Appears to include changes in a new resource provider")
     return;
   }
 
-  if (await util.hasLabel(github, context, "ARMReview")) {
-    await util.addLabel(github, context, "ARMAutoSignedOff");
-  } else {
-    await util.removeLabelIfExists(github, context, "ARMAutoSignedOff");
+  if (await util.hasLabel(github, context, core, "ARMReview")) {
+    await util.addLabel(github, context, core, "ARMAutoSignedOff");
+  } else if (await util.hasLabel(github, context, core, "ARMAutoSignedOff")) {
+    await util.removeLabelIfExists(github, context, core, "ARMAutoSignedOff");
   }
 };
 

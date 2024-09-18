@@ -5,12 +5,15 @@ const { execSync } = require("child_process");
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
  * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} name
  */
-async function addLabel(github, context, name) {
+async function addLabel(github, context, core, name) {
   if (!context.payload.pull_request) {
     throw new Error("May only run in context of a pull request");
   }
+
+  core.notice(`Adding label '${name}'`);
 
   // TODO: Add caching in front of GH Rest API calls
   await github.rest.issues.addLabels({
@@ -53,9 +56,10 @@ function getChangedSwaggerFiles(
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
  * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} name
  */
-async function hasLabel(github, context, name) {
+async function hasLabel(github, context, core, name) {
   if (!context.payload.pull_request) {
     throw new Error("May only run in context of a pull request");
   }
@@ -66,18 +70,24 @@ async function hasLabel(github, context, name) {
     repo: context.repo.repo,
     issue_number: context.payload.pull_request.number,
   });
-  return labels.some((l) => l.name == name);
+  const labelNames = labels.map((l) => l.name);
+  core.info(`Labels: ${labelNames}`);
+
+  return labelNames.some((n) => n == name);
 }
 
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
  * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} name
  */
-async function removeLabelIfExists(github, context, name) {
+async function removeLabelIfExists(github, context, core, name) {
   if (!context.payload.pull_request) {
     throw new Error("May only run in context of a pull request");
   }
+
+  core.notice(`Removing label '${name}' if exists`);
 
   try {
     // TODO: Add caching in front of GH Rest API calls
