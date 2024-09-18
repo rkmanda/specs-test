@@ -16,7 +16,7 @@ module.exports = async ({ github, context, core }) => {
   // - Not a conversion to TypeSpec
 
   if (
-    (await util.hasLabel(github, context, core, "ARMReview")) &&
+    (await util.hasLabel(github, context, "ARMReview")) &&
     (await incrementalChangesToExistingResourceProvider(core))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
