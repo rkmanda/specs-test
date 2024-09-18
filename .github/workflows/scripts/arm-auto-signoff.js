@@ -57,7 +57,7 @@ async function hasLabel(github, context, name) {
     repo: context.repo.repo,
     issue_number: context.payload.pull_request.number,
   });
-  return labels.some(l => l.name)
+  return labels.some(l => l.name == name)
 }
 
 /**
