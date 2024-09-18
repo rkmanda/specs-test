@@ -3,7 +3,7 @@ name: Required 1
 on: pull_request
 
 jobs:
-  fail-new-spec:
+  required-1:
     name: Required 1
 
     runs-on: ubuntu-latest
