@@ -3,6 +3,17 @@
 const { execSync } = require("child_process");
 
 /**
+ * @param {string} command
+ */
+function execSyncRoot(command) {
+  // TODO: Handle errors
+  return execSync(command, {
+    encoding: "utf8",
+    cwd: process.env.GITHUB_WORKSPACE,
+  });
+}
+
+/**
  * @param {string} [baseCommitish] Defaults to "HEAD^".
  * @param {string} [targetCommitish] Defaults to "HEAD".
  * @param {string} [diffFilter] Defaults to "d".
@@ -20,15 +31,4 @@ function getChangedSwaggerFiles(
   return result.trim().split("\n");
 }
 
-/**
- * @param {string} command
- */
-function execSyncRoot(command) {
-  // TODO: Handle errors
-  return execSync(command, {
-    encoding: "utf8",
-    cwd: process.env.GITHUB_WORKSPACE,
-  });
-}
-
-module.exports = { getChangedSwaggerFiles };
+module.exports = { execSyncRoot, getChangedSwaggerFiles };
