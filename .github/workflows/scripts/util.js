@@ -1,6 +1,7 @@
 // @ts-check
 
-const { execSync } = require("child_process");
+const { promisify } = require("util");
+const exec = promisify(require("child_process").exec);
 
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
@@ -8,9 +9,14 @@ const { execSync } = require("child_process");
  * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} name
  */
-async function addLabel(github, context, core, name) {
+async function addLabelIfNotExists(github, context, core, name) {
   if (!context.payload.pull_request) {
     throw new Error("May only run in context of a pull request");
+  }
+
+  if (await hasLabel(github, context, core, name)) {
+    core.info(`Already has label '${name}'`);
+    return;
   }
 
   core.notice(`Adding label '${name}'`);
@@ -27,21 +33,21 @@ async function addLabel(github, context, core, name) {
 /**
  * @param {string} command
  */
-function execSyncRoot(command) {
+async function execRoot(command) {
   // TODO: Handle errors
-  return execSync(command, {
-    encoding: "utf8",
+  const result = await exec(command, {
     cwd: process.env.GITHUB_WORKSPACE,
   });
+  return result.stdout;
 }
 
 /**
  * @param {string} [baseCommitish] Defaults to "HEAD^".
  * @param {string} [targetCommitish] Defaults to "HEAD".
  * @param {string} [diffFilter] Defaults to "d".
- * @returns {string[]}
+ * @returns {Promise<string[]>}
  */
-function getChangedSwaggerFiles(
+async function getChangedSwaggerFiles(
   baseCommitish = "HEAD^",
   targetCommitish = "HEAD",
   diffFilter = "d"
@@ -49,8 +55,8 @@ function getChangedSwaggerFiles(
   const command =
     `pwsh -command ". ./eng/scripts/ChangedFiles-Functions.ps1; ` +
     `Get-ChangedSwaggerFiles (Get-ChangedFiles ${baseCommitish} ${targetCommitish} ${diffFilter})"`;
-  var result = execSyncRoot(command);
-  return result.trim().split("\n");
+  const result = await exec(command);
+  return result.stdout.trim().split("\n");
 }
 
 /**
@@ -58,6 +64,7 @@ function getChangedSwaggerFiles(
  * @param {import('github-script').AsyncFunctionArguments['context']} context
  * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} name
+ * @returns {Promise<boolean>}
  */
 async function hasLabel(github, context, core, name) {
   if (!context.payload.pull_request) {
@@ -87,7 +94,11 @@ async function removeLabelIfExists(github, context, core, name) {
     throw new Error("May only run in context of a pull request");
   }
 
-  core.notice(`Removing label '${name}' if exists`);
+  if (!(await hasLabel(github, context, core, name))) {
+    core.info(`Does not have label '${name}'`);
+  }
+
+  core.notice(`Removing label '${name}'`);
 
   try {
     // TODO: Add caching in front of GH Rest API calls
@@ -110,8 +121,8 @@ async function removeLabelIfExists(github, context, core, name) {
 }
 
 module.exports = {
-  addLabel,
-  execSyncRoot,
+  addLabelIfNotExists,
+  execRoot,
   getChangedSwaggerFiles,
   hasLabel,
   removeLabelIfExists,
