@@ -24,4 +24,4 @@ jobs:
       with:
         script: |
           const armAutoSignoff = require('./.github/workflows/scripts/arm-auto-signoff.js')
-          await armAutoSignoff({ github, context });
+          await armAutoSignoff({ github, context, core });
