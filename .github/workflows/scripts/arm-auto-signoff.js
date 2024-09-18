@@ -17,7 +17,8 @@ module.exports = async ({ github, context, core }) => {
 
   if (
     (await util.hasLabel(github, context, "ARMReview")) &&
-    (await incrementalChangesToExistingResourceProvider(core))
+    (await incrementalChangesToExistingResourceProvider(core)) &&
+    (await allRequiredChecksPassing(github, context, core))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
   } else {
@@ -31,18 +32,21 @@ module.exports = async ({ github, context, core }) => {
  */
 async function specFolderExistsInTargetBranch(file) {
   // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso/preview/2021-10-01-preview/contoso.json
-  return await util.group(`specFolderExistsInTargetBranch("${file}")`, async () => {
-    // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
-    const specDir = path.dirname(path.dirname(path.dirname(file)));
-    console.log(`specDir: ${specDir}`);
+  return await util.group(
+    `specFolderExistsInTargetBranch("${file}")`,
+    async () => {
+      // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
+      const specDir = path.dirname(path.dirname(path.dirname(file)));
+      console.log(`specDir: ${specDir}`);
 
-    const lsTree = await util.execRoot(`git ls-tree HEAD^ ${specDir}`);
+      const lsTree = await util.execRoot(`git ls-tree HEAD^ ${specDir}`);
 
-    // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
-    const result = Boolean(lsTree);
-    console.log(`returning: ${result}`);
-    return result;
-  });
+      // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
+      const result = Boolean(lsTree);
+      console.log(`returning: ${result}`);
+      return result;
+    }
+  );
 }
 
 /**
@@ -50,36 +54,65 @@ async function specFolderExistsInTargetBranch(file) {
  * @returns {Promise<boolean>} True if PR contains changes to existing RPs, and no new RPs
  */
 async function incrementalChangesToExistingResourceProvider(core) {
-  return await util.group(`incrementalChangesToExistingResourceProvider()`, async () => {
-    const changedSwaggerFiles = await util.getChangedSwaggerFiles(
-      core,
-      "HEAD^",
-      "HEAD",
-      ""
-    );
-    const changedRmFiles = changedSwaggerFiles.filter((f) =>
-      f.includes("/resource-manager/")
-    );
-  
-    console.log(
-      `Changed files containing path '/resource-manager/': ${changedRmFiles}`
-    );
-  
-    if (changedRmFiles.length == 0) {
-      console.log(
-        "No changes to swagger files containing path '/resource-manager/'"
+  return await util.group(
+    `incrementalChangesToExistingResourceProvider()`,
+    async () => {
+      const changedSwaggerFiles = await util.getChangedSwaggerFiles(
+        core,
+        "HEAD^",
+        "HEAD",
+        ""
       );
-      return false;
-    } else {
-      for (let i=0; i < changedRmFiles.length; i++) {
-        const file = changedRmFiles[i];
-        if (!await(specFolderExistsInTargetBranch(file))) {
-          console.log(`Appears to add a new RP: ${file}`);
-          return false;
+      const changedRmFiles = changedSwaggerFiles.filter((f) =>
+        f.includes("/resource-manager/")
+      );
+
+      console.log(
+        `Changed files containing path '/resource-manager/': ${changedRmFiles}`
+      );
+
+      if (changedRmFiles.length == 0) {
+        console.log(
+          "No changes to swagger files containing path '/resource-manager/'"
+        );
+        return false;
+      } else {
+        for (let i = 0; i < changedRmFiles.length; i++) {
+          const file = changedRmFiles[i];
+          if (!(await specFolderExistsInTargetBranch(file))) {
+            console.log(`Appears to add a new RP: ${file}`);
+            return false;
+          }
         }
+        console.log("Appears to change an existing RPs, but adds no new RPs");
+        return true;
       }
-      console.log("Appears to change an existing RPs, but adds no new RPs");
-      return true;
     }
+  );
+}
+
+/**
+ * @param {import('github-script').AsyncFunctionArguments['github']} github
+ * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
+ * @returns {Promise<boolean>} True if all required checks for the PR are complete and passing
+ */
+async function allRequiredChecksPassing(github, context, core) {
+  return await util.group(`allRequiredChecksPassing()`, async () => {
+    if (!context.payload.pull_request) {
+      throw new Error("May only run in context of a pull request");
+    }
+
+    const {
+      data: { statuses },
+    } = await github.rest.repos.getCombinedStatusForRef({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      ref: context.payload.pull_request.head.sha,
+    });
+
+    console.log(statuses);
+
+    return true;
   });
 }
