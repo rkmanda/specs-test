@@ -3,9 +3,9 @@
 const { execSync } = require("child_process");
 
 /**
- * @param {string} [baseCommitish="HEAD^"] Defaults to "HEAD^".
- * @param {string} [targetCommitish="HEAD"] Defaults to "HEAD".
- * @param {string} [diffFilter="d"] Defaults to "d".
+ * @param {string} [baseCommitish] Defaults to "HEAD^".
+ * @param {string} [targetCommitish] Defaults to "HEAD".
+ * @param {string} [diffFilter] Defaults to "d".
  * @returns {string[]}
  */
 function getChangedSwaggerFiles(
