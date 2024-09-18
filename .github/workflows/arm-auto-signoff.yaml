@@ -19,7 +19,7 @@ jobs:
           .github
           eng
 
-    - name: Add Label
+    - name: Add or Remove Label
       uses: actions/github-script@v7
       with:
         script: |
