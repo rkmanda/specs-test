@@ -35,7 +35,7 @@ async function addLabelIfNotExists(github, context, core, name) {
  * @param {string} command
  */
 async function execRoot(core, command) {
-  core.group(`exec("${command}")`, async () => {
+  await core.group(`exec("${command}")`, async () => {
     // TODO: Handle errors
     const result = await exec(command, {
       cwd: process.env.GITHUB_WORKSPACE,
