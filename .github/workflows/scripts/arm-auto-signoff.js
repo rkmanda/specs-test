@@ -2,7 +2,6 @@
 
 const path = require("path");
 const { execSyncRoot, getChangedSwaggerFiles } = require("./util.js");
-const { RequestError } = require("@octokit/request-error");
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
@@ -97,7 +96,10 @@ async function removeLabelIfExists(github, context, name) {
       name: name,
     });
   } catch (error) {
-    if (error instanceof RequestError && error.status == 404) {
+    /** @type {import("@octokit/request-error").RequestError} */
+    const requestError = error;
+
+    if (requestError.status == 404) {
       // Label does not exist
     } else {
       throw error;
