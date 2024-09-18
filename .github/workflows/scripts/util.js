@@ -3,6 +3,25 @@
 const { execSync } = require("child_process");
 
 /**
+ * @param {import('github-script').AsyncFunctionArguments['github']} github
+ * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {string} name
+ */
+async function addLabel(github, context, name) {
+  if (!context.payload.pull_request) {
+    throw new Error("May only run in context of a pull request");
+  }
+
+  // TODO: Add caching in front of GH Rest API calls
+  await github.rest.issues.addLabels({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    issue_number: context.payload.pull_request.number,
+    labels: [name],
+  });
+}
+
+/**
  * @param {string} command
  */
 function execSyncRoot(command) {
@@ -31,4 +50,59 @@ function getChangedSwaggerFiles(
   return result.trim().split("\n");
 }
 
-module.exports = { execSyncRoot, getChangedSwaggerFiles };
+/**
+ * @param {import('github-script').AsyncFunctionArguments['github']} github
+ * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {string} name
+ */
+async function hasLabel(github, context, name) {
+  if (!context.payload.pull_request) {
+    throw new Error("May only run in context of a pull request");
+  }
+
+  // TODO: Add caching in front of GH Rest API calls
+  const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    issue_number: context.payload.pull_request.number,
+  });
+  return labels.some((l) => l.name == name);
+}
+
+/**
+ * @param {import('github-script').AsyncFunctionArguments['github']} github
+ * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @param {string} name
+ */
+async function removeLabelIfExists(github, context, name) {
+  if (!context.payload.pull_request) {
+    throw new Error("May only run in context of a pull request");
+  }
+
+  try {
+    // TODO: Add caching in front of GH Rest API calls
+    await github.rest.issues.removeLabel({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: context.payload.pull_request.number,
+      name: name,
+    });
+  } catch (error) {
+    /** @type {import("@octokit/request-error").RequestError} */
+    const requestError = error;
+
+    if (requestError.status == 404) {
+      // Label does not exist
+    } else {
+      throw error;
+    }
+  }
+}
+
+module.exports = {
+  addLabel,
+  execSyncRoot,
+  getChangedSwaggerFiles,
+  hasLabel,
+  removeLabelIfExists,
+};

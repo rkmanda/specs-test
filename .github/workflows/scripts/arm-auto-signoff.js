@@ -1,7 +1,7 @@
 // @ts-check
 
 const path = require("path");
-const { execSyncRoot, getChangedSwaggerFiles } = require("./util.js");
+const util = require("./util.js");
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
@@ -19,7 +19,7 @@ module.exports = async ({ github, context, core }) => {
     throw new Error("May only run in context of a pull request");
   }
 
-  const changedSwaggerFiles = getChangedSwaggerFiles("HEAD^", "HEAD", "");
+  const changedSwaggerFiles = util.getChangedSwaggerFiles("HEAD^", "HEAD", "");
   const changedRmFiles = changedSwaggerFiles.filter((f) =>
     f.includes("/resource-manager/")
   );
@@ -32,80 +32,12 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  if (await hasLabel(github, context, "ARMReview")) {
-    await addLabel(github, context, "ARMAutoSignedOff");
+  if (await util.hasLabel(github, context, "ARMReview")) {
+    await util.addLabel(github, context, "ARMAutoSignedOff");
   } else {
-    await removeLabelIfExists(github, context, "ARMAutoSignedOff");
+    await util.removeLabelIfExists(github, context, "ARMAutoSignedOff");
   }
 };
-
-/**
- * @param {import('github-script').AsyncFunctionArguments['github']} github
- * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @param {string} name
- */
-async function hasLabel(github, context, name) {
-  if (!context.payload.pull_request) {
-    throw new Error("May only run in context of a pull request");
-  }
-
-  // TODO: Add caching in front of GH Rest API calls
-  const { data: labels } = await github.rest.issues.listLabelsOnIssue({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    issue_number: context.payload.pull_request.number,
-  });
-  return labels.some((l) => l.name == name);
-}
-
-/**
- * @param {import('github-script').AsyncFunctionArguments['github']} github
- * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @param {string} name
- */
-async function addLabel(github, context, name) {
-  if (!context.payload.pull_request) {
-    throw new Error("May only run in context of a pull request");
-  }
-
-  // TODO: Add caching in front of GH Rest API calls
-  await github.rest.issues.addLabels({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    issue_number: context.payload.pull_request.number,
-    labels: [name],
-  });
-}
-
-/**
- * @param {import('github-script').AsyncFunctionArguments['github']} github
- * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @param {string} name
- */
-async function removeLabelIfExists(github, context, name) {
-  if (!context.payload.pull_request) {
-    throw new Error("May only run in context of a pull request");
-  }
-
-  try {
-    // TODO: Add caching in front of GH Rest API calls
-    await github.rest.issues.removeLabel({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: context.payload.pull_request.number,
-      name: name,
-    });
-  } catch (error) {
-    /** @type {import("@octokit/request-error").RequestError} */
-    const requestError = error;
-
-    if (requestError.status == 404) {
-      // Label does not exist
-    } else {
-      throw error;
-    }
-  }
-}
 
 /**
  * @param {string} file
@@ -118,5 +50,5 @@ function specFolderExistsInTargetBranch(file) {
   const specDir = path.dirname(path.dirname(path.dirname(file)));
 
   // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
-  return Boolean(execSyncRoot(`git ls-tree HEAD^ ${specDir}`));
+  return Boolean(util.execSyncRoot(`git ls-tree HEAD^ ${specDir}`));
 }
