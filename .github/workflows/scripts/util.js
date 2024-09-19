@@ -32,7 +32,6 @@ async function addLabelIfNotExists(github, context, core, name) {
   });
 }
 
-
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
  * @param {import('github-script').AsyncFunctionArguments['context']} context
@@ -50,54 +49,65 @@ async function allRequiredChecksPassing(github, context) {
       ref: context.payload.pull_request.head.sha,
     });
 
-    const checkRuns = checks.data.check_runs;
-
-    for (let i=0; i < checkRuns.length; i++) {
-      const checkRun = checkRuns[i];
+    for (let checkRun of checks.data.check_runs) {
       console.log(checkRun);
-    } 
+    }
 
-    /** @type {Set<string>} */
-    const requiredChecksNames = new Set();
+    const requiredCheckNames = await getRequiredCheckNames(github, context);
 
-    const branchRules = await github.rest.repos.getBranchRules({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      branch: context.payload.pull_request.base.ref
-    });
+    for (const requiredCheckName of requiredCheckNames) {
+      console.log(`Required check: ${requiredCheckName}`);
+    }
 
-    for (let i=0; i < branchRules.data.length; i++) {
-      const branchRule = branchRules.data[i];
-      console.log(`${branchRule.type}, ${branchRule.ruleset_id}`);
+    return true;
+  });
+}
 
-      if (branchRule.type == "required_status_checks") {
-        const repoRuleset = await github.rest.repos.getRepoRuleset({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          ruleset_id: branchRule.ruleset_id ?? -1
-        });
+/**
+ * @param {import('github-script').AsyncFunctionArguments['github']} github
+ * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @returns {Promise<Set<string>>} Set of required check names for a PR
+ */
+async function getRequiredCheckNames(github, context) {
+  if (!context.payload.pull_request) {
+    throw new Error("May only run in context of a pull request");
+  }
 
-        if (repoRuleset.data.rules) {
-          for (let j=0; j < repoRuleset.data.rules.length; j++) {
-            const rule = repoRuleset.data.rules[j];
-            if (rule.type == "required_status_checks") {
-              if (rule.parameters) {
-                for (let k=0; k < rule.parameters.required_status_checks.length; k++) {
-                  const requiredStatusCheck = rule.parameters.required_status_checks[k];
-                  console.log(requiredStatusCheck.context);
-                  requiredChecksNames.add(requiredStatusCheck.context);
-                }
+  /** @type {Set<string>} */
+  const requiredChecksNames = new Set();
+
+  const branchRules = await github.rest.repos.getBranchRules({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    branch: context.payload.pull_request.base.ref,
+  });
+
+  for (const branchRule of branchRules.data) {
+    console.log(`${branchRule.type}, ${branchRule.ruleset_id}`);
+
+    if (branchRule.type == "required_status_checks") {
+      const repoRuleset = await github.rest.repos.getRepoRuleset({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        ruleset_id: branchRule.ruleset_id ?? -1,
+      });
+
+      if (repoRuleset.data.rules) {
+        for (const rule of repoRuleset.data.rules) {
+          if (rule.type == "required_status_checks") {
+            if (rule.parameters) {
+              for (const requiredStatusCheck of rule.parameters.required_status_checks) {
+                console.log(requiredStatusCheck.context);
+                requiredChecksNames.add(requiredStatusCheck.context);
               }
             }
           }
         }
       }
-    } 
+    }
+  }
 
-    console.log(`requiredChecksNames: ${requiredChecksNames}`);
-
-    return true;
-  });
+  return requiredChecksNames;
 }
 
 /**
@@ -142,7 +152,7 @@ async function getChangedSwaggerFiles(
 
 /**
  * Wrap an async function in a log group
- * 
+ *
  * @template T
  * @param {string} name
  * @param {() => Promise<T>} fn
@@ -152,12 +162,10 @@ async function group(name, fn) {
   console.group(name);
   try {
     return await fn();
-  }
-  finally {
+  } finally {
     console.groupEnd();
   }
 }
-
 
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github

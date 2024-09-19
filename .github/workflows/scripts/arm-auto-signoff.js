@@ -77,8 +77,7 @@ async function incrementalChangesToExistingResourceProvider(core) {
         );
         return false;
       } else {
-        for (let i = 0; i < changedRmFiles.length; i++) {
-          const file = changedRmFiles[i];
+        for (const file of changedRmFiles) {
           if (!(await specFolderExistsInTargetBranch(file))) {
             console.log(`Appears to add a new RP: ${file}`);
             return false;
