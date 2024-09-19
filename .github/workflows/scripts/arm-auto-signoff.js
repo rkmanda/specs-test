@@ -103,21 +103,18 @@ async function allRequiredChecksPassing(github, context, core) {
       throw new Error("May only run in context of a pull request");
     }
 
-    const status = await github.rest.repos.getCombinedStatusForRef({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      ref: context.payload.pull_request.head.sha,
-    });
-
-    console.log(status);
-
     const checks = await github.rest.checks.listForRef({
       owner: context.repo.owner,
       repo: context.repo.repo,
       ref: context.payload.pull_request.head.sha,
     })
 
-    console.log(checks);
+    const checkRuns = checks.data.check_runs;
+
+    for (let i=0; i < checkRuns.length; i++) {
+      const checkRun = checkRuns[i];
+      console.log(checkRun);
+    }
 
     return true;
   });
