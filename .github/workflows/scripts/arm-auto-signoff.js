@@ -103,15 +103,13 @@ async function allRequiredChecksPassing(github, context, core) {
       throw new Error("May only run in context of a pull request");
     }
 
-    const {
-      data: { statuses },
-    } = await github.rest.repos.getCombinedStatusForRef({
+    const status = await github.rest.repos.getCombinedStatusForRef({
       owner: context.repo.owner,
       repo: context.repo.repo,
       ref: context.payload.pull_request.head.sha,
     });
 
-    console.log(statuses);
+    console.log(status);
 
     return true;
   });
