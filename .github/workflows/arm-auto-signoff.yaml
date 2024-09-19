@@ -9,6 +9,9 @@ jobs:
   add-arm-auto-signoff:
     name: ARMAutoSignoff
 
+    permissions:
+      pull-requests: write
+
     runs-on: ubuntu-latest
 
     steps:
