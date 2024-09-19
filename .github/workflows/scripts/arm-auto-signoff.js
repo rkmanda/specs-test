@@ -116,13 +116,13 @@ async function allRequiredChecksPassing(github, context, core) {
       console.log(`${checkRun.name}, ${checkRun.status}, ${checkRun.conclusion}`);
     } 
 
-    const branchProtection = await github.rest.repos.getBranchProtection({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      branch: context.payload.pull_request.base.ref
-    });
+    // const branchProtection = await github.rest.repos.getBranchProtection({
+    //   owner: context.repo.owner,
+    //   repo: context.repo.repo,
+    //   branch: context.payload.pull_request.base.ref
+    // });
 
-    console.log(branchProtection);
+    // console.log(branchProtection);
 
     const rulesets = await github.rest.repos.getRepoRulesets({
       owner: context.repo.owner,
