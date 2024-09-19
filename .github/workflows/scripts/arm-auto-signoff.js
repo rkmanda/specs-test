@@ -7,6 +7,8 @@ const util = require("./util.js");
 module.exports = async ({ github, context, core }) => {
   // If all the following conditions are true, apply label "ARMAutoSignoff".  Else, remove label.
   // - PR has label "ARMReview"
+  // - PR does *not* have label "NotReadForARMReview"
+  // - PR has label "ARMBestPractices"
   // - PR represents incremental changes to an existing resource provider
   //   - The first PR for a new resource provider will still go thru the usual manual review process.
   // - Not a conversion to TypeSpec
@@ -17,8 +19,12 @@ module.exports = async ({ github, context, core }) => {
   //     - If any suppressions are applied to these PRs, they will go thru a manual approval process because
   //       applying suppressions indicates that some of the mandatory guidelines are attempted to be violated.
 
+  console.log(`context.payload: ${context.payload}`);
+
   if (
     (await util.hasLabel(github, context, "ARMReview")) &&
+    !(await util.hasLabel(github, context, "NotReadyForARMReview")) &&
+    (await util.hasLabel(github, context, "ARMBestPractices")) &&
     (await incrementalChangesToExistingResourceProvider(core))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
