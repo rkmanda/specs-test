@@ -84,6 +84,7 @@ async function allRequiredChecksPassing(github, context) {
               if (rule.parameters) {
                 for (let k=0; k < rule.parameters.required_status_checks.length; k++) {
                   const requiredStatusCheck = rule.parameters.required_status_checks[k];
+                  console.log(requiredStatusCheck);
                   requiredChecksIds.add(requiredStatusCheck.integration_id || -1);
                 }
               }
