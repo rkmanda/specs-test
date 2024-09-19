@@ -32,6 +32,74 @@ async function addLabelIfNotExists(github, context, core, name) {
   });
 }
 
+
+/**
+ * @param {import('github-script').AsyncFunctionArguments['github']} github
+ * @param {import('github-script').AsyncFunctionArguments['context']} context
+ * @returns {Promise<boolean>} True if all required checks for the PR are complete and passing
+ */
+async function allRequiredChecksPassing(github, context) {
+  return await group(`allRequiredChecksPassing()`, async () => {
+    if (!context.payload.pull_request) {
+      throw new Error("May only run in context of a pull request");
+    }
+
+    const checks = await github.rest.checks.listForRef({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      ref: context.payload.pull_request.head.sha,
+    });
+
+    const checkRuns = checks.data.check_runs;
+
+    for (let i=0; i < checkRuns.length; i++) {
+      const checkRun = checkRuns[i];
+      console.log(checkRun);
+    } 
+
+    /** @type {Set<Number>} */
+    const requiredChecksIds = new Set();
+
+    const branchRules = await github.rest.repos.getBranchRules({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      branch: context.payload.pull_request.base.ref
+    });
+
+    for (let i=0; i < branchRules.data.length; i++) {
+      const branchRule = branchRules.data[i];
+      console.log(`${branchRule.type}, ${branchRule.ruleset_id}`);
+
+      if (branchRule.type == "required_status_checks") {
+        const repoRuleset = await github.rest.repos.getRepoRuleset({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          ruleset_id: branchRule.ruleset_id ?? -1
+        });
+
+        if (repoRuleset.data.rules) {
+          for (let j=0; j < repoRuleset.data.rules.length; j++) {
+            const rule = repoRuleset.data.rules[j];
+            if (rule.type == "required_status_checks") {
+              if (rule.parameters) {
+                for (let k=0; k < rule.parameters.required_status_checks.length; k++) {
+                  const requiredStatusCheck = rule.parameters.required_status_checks[k];
+                  requiredChecksIds.add(requiredStatusCheck.integration_id || -1);
+                }
+              }
+            }
+          }
+          console.log(repoRuleset.data.rules);
+        }
+
+      }
+    } 
+
+
+    return true;
+  });
+}
+
 /**
  * @param {string} command
  */
@@ -160,6 +228,7 @@ async function removeLabelIfExists(github, context, core, name) {
 
 module.exports = {
   addLabelIfNotExists,
+  allRequiredChecksPassing,
   execRoot,
   getChangedSwaggerFiles,
   group,

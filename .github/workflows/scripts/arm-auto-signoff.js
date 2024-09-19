@@ -18,7 +18,7 @@ module.exports = async ({ github, context, core }) => {
   if (
     (await util.hasLabel(github, context, "ARMReview")) &&
     (await incrementalChangesToExistingResourceProvider(core)) &&
-    (await allRequiredChecksPassing(github, context, core))
+    (await util.allRequiredChecksPassing(github, context))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
   } else {
@@ -89,54 +89,4 @@ async function incrementalChangesToExistingResourceProvider(core) {
       }
     }
   );
-}
-
-/**
- * @param {import('github-script').AsyncFunctionArguments['github']} github
- * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @param {import('github-script').AsyncFunctionArguments['core']} core
- * @returns {Promise<boolean>} True if all required checks for the PR are complete and passing
- */
-async function allRequiredChecksPassing(github, context, core) {
-  return await util.group(`allRequiredChecksPassing()`, async () => {
-    if (!context.payload.pull_request) {
-      throw new Error("May only run in context of a pull request");
-    }
-
-    const checks = await github.rest.checks.listForRef({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      ref: context.payload.pull_request.head.sha,
-    });
-
-    const checkRuns = checks.data.check_runs;
-
-    for (let i=0; i < checkRuns.length; i++) {
-      const checkRun = checkRuns[i];
-      console.log(`${checkRun.id}, ${checkRun.name}, ${checkRun.status}, ${checkRun.conclusion}`);
-    } 
-
-    const rules = await github.rest.repos.getBranchRules({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      branch: context.payload.pull_request.base.ref
-    });
-
-    for (let i=0; i < rules.data.length; i++) {
-      const rule = rules.data[i];
-      console.log(`${rule.type}, ${rule.ruleset_id}`);
-
-      const ruleset = await github.rest.repos.getRepoRuleset({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        ruleset_id: rule.ruleset_id ?? -1
-      });
-
-      console.log(ruleset);
-      console.log(ruleset.data.rules);
-    } 
-
-
-    return true;
-  });
 }
