@@ -116,13 +116,25 @@ async function allRequiredChecksPassing(github, context, core) {
       console.log(`${checkRun.name}, ${checkRun.status}, ${checkRun.conclusion}`);
     } 
 
-    const branchRules = await github.rest.repos.getBranchRules({
+    const rules = await github.rest.repos.getBranchRules({
       owner: context.repo.owner,
       repo: context.repo.repo,
       branch: context.payload.pull_request.base.ref
     });
 
-    console.log(branchRules);
+    for (let i=0; i < rules.data.length; i++) {
+      const rule = rules.data[i];
+      console.log(`${rule.type}, ${rule.ruleset_id}`);
+
+      const ruleset = await github.rest.repos.getRepoRuleset({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        ruleset_id: rule.ruleset_id ?? -1
+      });
+
+      console.log(ruleset);
+    } 
+
 
     return true;
   });
