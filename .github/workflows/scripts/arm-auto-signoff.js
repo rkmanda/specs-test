@@ -103,6 +103,14 @@ async function allRequiredChecksPassing(github, context, core) {
       throw new Error("May only run in context of a pull request");
     }
 
+    const statuses = await github.rest.repos.listCommitStatusesForRef({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      ref: context.payload.pull_request.head.sha,
+    });
+
+    console.log(statuses);
+
     const checks = await github.rest.checks.listForRef({
       owner: context.repo.owner,
       repo: context.repo.repo,
@@ -116,13 +124,13 @@ async function allRequiredChecksPassing(github, context, core) {
       console.log(`${checkRun.name}, ${checkRun.status}, ${checkRun.conclusion}`);
     } 
 
-    const branchProtection = await github.rest.repos.getBranchProtection({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      branch: context.payload.pull_request.base.ref
-    });
+    // const branchProtection = await github.rest.repos.getBranchProtection({
+    //   owner: context.repo.owner,
+    //   repo: context.repo.repo,
+    //   branch: context.payload.pull_request.base.ref
+    // });
 
-    console.log(branchProtection);
+    // console.log(branchProtection);
 
     return true;
   });
