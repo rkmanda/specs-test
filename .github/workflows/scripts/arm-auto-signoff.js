@@ -111,6 +111,14 @@ async function allRequiredChecksPassing(github, context, core) {
 
     console.log(status);
 
+    const checks = await github.rest.checks.listForRef({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      ref: context.payload.pull_request.head.sha,
+    })
+
+    console.log(checks);
+
     return true;
   });
 }
