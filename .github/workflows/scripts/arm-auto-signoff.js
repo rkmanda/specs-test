@@ -19,7 +19,7 @@ module.exports = async ({ github, context, core }) => {
   //     - If any suppressions are applied to these PRs, they will go thru a manual approval process because
   //       applying suppressions indicates that some of the mandatory guidelines are attempted to be violated.
 
-  console.log(`context.payload: ${context.payload}`);
+  console.log(`context.payload: ${JSON.stringify(context.payload)}`);
 
   if (
     (await util.hasLabel(github, context, "ARMReview")) &&
