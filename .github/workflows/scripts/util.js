@@ -113,7 +113,7 @@ async function getLabels(github, context) {
       labelCache.set(prNumber, labelNames);
     }
 
-    console.log(`Labels: ${labelNames}`);
+    console.log(`Labels: ${Array.from(labelNames).sort()}`);
 
     return labelNames;
   });
