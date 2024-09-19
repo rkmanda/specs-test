@@ -133,6 +133,7 @@ async function allRequiredChecksPassing(github, context, core) {
       });
 
       console.log(ruleset);
+      console.log(ruleset.data.rules);
     } 
 
 
