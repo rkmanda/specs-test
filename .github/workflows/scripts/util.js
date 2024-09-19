@@ -57,8 +57,8 @@ async function allRequiredChecksPassing(github, context) {
       console.log(checkRun);
     } 
 
-    /** @type {Set<Number>} */
-    const requiredChecksIds = new Set();
+    /** @type {Set<string>} */
+    const requiredChecksNames = new Set();
 
     const branchRules = await github.rest.repos.getBranchRules({
       owner: context.repo.owner,
@@ -84,18 +84,17 @@ async function allRequiredChecksPassing(github, context) {
               if (rule.parameters) {
                 for (let k=0; k < rule.parameters.required_status_checks.length; k++) {
                   const requiredStatusCheck = rule.parameters.required_status_checks[k];
-                  console.log(requiredStatusCheck);
-                  requiredChecksIds.add(requiredStatusCheck.integration_id || -1);
+                  console.log(requiredStatusCheck.context);
+                  requiredChecksNames.add(requiredStatusCheck.context);
                 }
               }
             }
           }
-          console.log(repoRuleset.data.rules);
         }
-
       }
     } 
 
+    console.log(`requiredChecksNames: ${requiredChecksNames}`);
 
     return true;
   });
