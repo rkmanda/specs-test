@@ -32,82 +32,90 @@ async function addLabelIfNotExists(github, context, core, name) {
   });
 }
 
-/**
- * @param {import('github-script').AsyncFunctionArguments['github']} github
- * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @returns {Promise<boolean>} True if all required checks for the PR are complete and passing
- */
-async function allRequiredChecksPassing(github, context) {
-  return await group(`allRequiredChecksPassing()`, async () => {
-    if (!context.payload.pull_request) {
-      throw new Error("May only run in context of a pull request");
-    }
+// /**
+//  * @param {import('github-script').AsyncFunctionArguments['github']} github
+//  * @param {import('github-script').AsyncFunctionArguments['context']} context
+//  * @returns {Promise<boolean>} True if all required checks for the PR are complete and passing
+//  */
+// async function allRequiredChecksPassing(github, context) {
+//   return await group(`allRequiredChecksPassing()`, async () => {
+//     if (!context.payload.pull_request) {
+//       throw new Error("May only run in context of a pull request");
+//     }
 
-    const checks = await github.rest.checks.listForRef({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      ref: context.payload.pull_request.head.sha,
-    });
+//     const checkSuite = await github.rest.checks.listSuitesForRef({
+//       owner: context.repo.owner,
+//       repo: context.repo.repo,
+//       ref: context.payload.pull_request.head.sha,
+//     });
 
-    for (let checkRun of checks.data.check_runs) {
-      console.log(checkRun);
-    }
+//     console.log(checkSuite);
 
-    const requiredCheckNames = await getRequiredCheckNames(github, context);
+//     // const checks = await github.rest.checks.listForRef({
+//     //   owner: context.repo.owner,
+//     //   repo: context.repo.repo,
+//     //   ref: context.payload.pull_request.head.sha,
+//     // });
 
-    for (const requiredCheckName of requiredCheckNames) {
-      console.log(`Required check: ${requiredCheckName}`);
-    }
+//     // for (let checkRun of checks.data.check_runs) {
+//     //   console.log(checkRun);
+//     // }
 
-    return true;
-  });
-}
+//     // const requiredCheckNames = await getRequiredCheckNames(github, context);
 
-/**
- * @param {import('github-script').AsyncFunctionArguments['github']} github
- * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @returns {Promise<Set<string>>} Set of required check names for a PR
- */
-async function getRequiredCheckNames(github, context) {
-  // TODO: Add logging
+//     // for (const requiredCheckName of requiredCheckNames) {
+//     //   console.log(`Required check: ${requiredCheckName}`);
+//     // }
 
-  if (!context.payload.pull_request) {
-    throw new Error("May only run in context of a pull request");
-  }
+//     return true;
+//   });
+// }
 
-  /** @type {Set<string>} */
-  const requiredChecksNames = new Set();
+// /**
+//  * @param {import('github-script').AsyncFunctionArguments['github']} github
+//  * @param {import('github-script').AsyncFunctionArguments['context']} context
+//  * @returns {Promise<Set<string>>} Set of required check names for a PR
+//  */
+// async function getRequiredCheckNames(github, context) {
+//   // TODO: Add logging
 
-  const branchRules = await github.rest.repos.getBranchRules({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    branch: context.payload.pull_request.base.ref,
-  });
+//   if (!context.payload.pull_request) {
+//     throw new Error("May only run in context of a pull request");
+//   }
 
-  for (const branchRule of branchRules.data) {
-    if (branchRule.type == "required_status_checks") {
-      const repoRuleset = await github.rest.repos.getRepoRuleset({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        ruleset_id: branchRule.ruleset_id ?? -1,
-      });
+//   /** @type {Set<string>} */
+//   const requiredChecksNames = new Set();
 
-      if (repoRuleset.data.rules) {
-        for (const rule of repoRuleset.data.rules) {
-          if (rule.type == "required_status_checks") {
-            if (rule.parameters) {
-              for (const requiredStatusCheck of rule.parameters.required_status_checks) {
-                requiredChecksNames.add(requiredStatusCheck.context);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+//   const branchRules = await github.rest.repos.getBranchRules({
+//     owner: context.repo.owner,
+//     repo: context.repo.repo,
+//     branch: context.payload.pull_request.base.ref,
+//   });
 
-  return requiredChecksNames;
-}
+//   for (const branchRule of branchRules.data) {
+//     if (branchRule.type == "required_status_checks") {
+//       const repoRuleset = await github.rest.repos.getRepoRuleset({
+//         owner: context.repo.owner,
+//         repo: context.repo.repo,
+//         ruleset_id: branchRule.ruleset_id ?? -1,
+//       });
+
+//       if (repoRuleset.data.rules) {
+//         for (const rule of repoRuleset.data.rules) {
+//           if (rule.type == "required_status_checks") {
+//             if (rule.parameters) {
+//               for (const requiredStatusCheck of rule.parameters.required_status_checks) {
+//                 requiredChecksNames.add(requiredStatusCheck.context);
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   return requiredChecksNames;
+// }
 
 /**
  * @param {string} command
@@ -235,7 +243,6 @@ async function removeLabelIfExists(github, context, core, name) {
 
 module.exports = {
   addLabelIfNotExists,
-  allRequiredChecksPassing,
   execRoot,
   getChangedSwaggerFiles,
   group,
