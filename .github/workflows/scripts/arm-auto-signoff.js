@@ -113,7 +113,7 @@ async function allRequiredChecksPassing(github, context, core) {
 
     for (let i=0; i < checkRuns.length; i++) {
       const checkRun = checkRuns[i];
-      console.log(`${checkRun.name}, ${checkRun.status}, ${checkRun.conclusion}`);
+      console.log(`${checkRun.id}, ${checkRun.name}, ${checkRun.status}, ${checkRun.conclusion}`);
     } 
 
     const rules = await github.rest.repos.getBranchRules({
