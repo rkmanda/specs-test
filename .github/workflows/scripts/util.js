@@ -69,6 +69,8 @@ async function allRequiredChecksPassing(github, context) {
  * @returns {Promise<Set<string>>} Set of required check names for a PR
  */
 async function getRequiredCheckNames(github, context) {
+  // TODO: Add logging
+
   if (!context.payload.pull_request) {
     throw new Error("May only run in context of a pull request");
   }
@@ -83,8 +85,6 @@ async function getRequiredCheckNames(github, context) {
   });
 
   for (const branchRule of branchRules.data) {
-    console.log(`${branchRule.type}, ${branchRule.ruleset_id}`);
-
     if (branchRule.type == "required_status_checks") {
       const repoRuleset = await github.rest.repos.getRepoRuleset({
         owner: context.repo.owner,
@@ -97,7 +97,6 @@ async function getRequiredCheckNames(github, context) {
           if (rule.type == "required_status_checks") {
             if (rule.parameters) {
               for (const requiredStatusCheck of rule.parameters.required_status_checks) {
-                console.log(requiredStatusCheck.context);
                 requiredChecksNames.add(requiredStatusCheck.context);
               }
             }
