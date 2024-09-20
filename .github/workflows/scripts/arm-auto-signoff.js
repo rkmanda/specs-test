@@ -132,7 +132,7 @@ async function typespecConversion(core) {
         { encoding: "utf8" }
       );
       const swaggerObj = JSON.parse(swagger);
-      if (swaggerObj["info"]["x-typespec-generated"]) {
+      if (swaggerObj["info"] && swaggerObj["info"]["x-typespec-generated"]) {
         console.log(`File "${file}" contains "info.x-typespec-generated"`);
         changedSwaggerTypeSpecGenerated = true;
       }
