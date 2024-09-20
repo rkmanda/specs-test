@@ -138,6 +138,7 @@ async function typespecConversion(core) {
       }
     }
 
+    console.log(`returning: ${changedSwaggerTypeSpecGenerated}`);
     return changedSwaggerTypeSpecGenerated;
   });
 }
