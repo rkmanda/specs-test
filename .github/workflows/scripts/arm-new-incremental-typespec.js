@@ -10,7 +10,7 @@ const os = require("os");
 module.exports = async ({ github, context, core }) => {
 
   // This check adds a label "typespec-new", if the PR has atleast one Open API spec that is generated from TypeSpec and there are no Open API specs generated from TypeSpec in the target branch for the same service.
-  // If there are Open API specs generated from TypeSpec in the target branch for the same service, then the check adds a label "typespec-existing".
+  // If there are Open API specs generated from TypeSpec in the target branch for the same service, then the check adds a label "typespec-incremental".
   // If there are no Open API specs in the PR or if the Open API specs in the PR are not generated from TypeSpec, then the check adds a label "typespec-noop".
   
 
@@ -22,7 +22,7 @@ module.exports = async ({ github, context, core }) => {
     );
     await util.addLabelIfNotExists(github, context, core, "typespec-noop");
     await util.removeLabelIfExists(github, context, core, "typespec-new");
-    await util.removeLabelIfExists(github, context, core, "typespec-existing");
+    await util.removeLabelIfExists(github, context, core, "typespec-incremental");
     return;
   }
 
@@ -31,17 +31,17 @@ module.exports = async ({ github, context, core }) => {
     console.log("Changes dont contain any Open API specs that are generated from TypeSpec.");
     await util.addLabelIfNotExists(github, context, core, "typespec-noop");
     await util.removeLabelIfExists(github, context, core, "typespec-new");
-    await util.removeLabelIfExists(github, context, core, "typespec-existing");
+    await util.removeLabelIfExists(github, context, core, "typespec-incremental");
     return;
   }
 
-  // Logic to add the typespec-new or typespec-existing label based on whether the PR is the first time TypeSpec generated Open API spec files are being introduced for the service
+  // Logic to add the typespec-new or typespec-incremental label based on whether the PR is the first time TypeSpec generated Open API spec files are being introduced for the service
   if ((await isFirstTypeSpecPRForRPService(changedRmFiles))) {
     await util.addLabelIfNotExists(github, context, core, "typespec-new");
-    await util.removeLabelIfExists(github, context, core, "typespec-existing");  
+    await util.removeLabelIfExists(github, context, core, "typespec-incremental");  
     await util.removeLabelIfExists(github, context, core, "typespec-noop");  
   } else {
-    await util.addLabelIfNotExists(github, context, core, "typespec-existing");
+    await util.addLabelIfNotExists(github, context, core, "typespec-incremental");
     await util.removeLabelIfExists(github, context, core, "typespec-new");  
     await util.removeLabelIfExists(github, context, core, "typespec-noop");  
   }
