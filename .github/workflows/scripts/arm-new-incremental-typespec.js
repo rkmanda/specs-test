@@ -3,7 +3,7 @@
 
 const path = require("path");
 const util = require("./util.js");
-const { readFile } = require("fs/promises");
+const { readFile, writeFile, mkdtemp } = require("fs/promises");
 const os = require("os");
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
