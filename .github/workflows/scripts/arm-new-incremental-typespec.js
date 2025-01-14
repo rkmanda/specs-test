@@ -3,6 +3,7 @@
 
 const path = require("path");
 const util = require("./util.js");
+const fs = require('fs');
 const { readFile, writeFile, mkdtemp } = require("fs/promises");
 const os = require("os");
 
