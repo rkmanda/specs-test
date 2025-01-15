@@ -7,26 +7,31 @@ const { readFile } = require("fs/promises");
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
   // If all the following conditions are true, apply label "ARMAutoSignoff".  Else, remove label.
-  // - PR has label "ARMReview"
-  // - PR does *not* have label "NotReadForARMReview"
-  // - PR has label "ARMBestPractices"
-  // - PR represents incremental changes to an existing resource provider
-  //   - The first PR for a new resource provider will still go thru the usual manual review process.
-  // - Not a conversion to TypeSpec
+  // - PR has label "ARMReview" - indicating this is an ARM review PR
+  // - PR does *not* have label "NotReadForARMReview" - indicating this PR is ready for ARM review
+  // - PR has label "ARMBestPractices" - indicating this PR follows ARM best practices
+  // - PR has label "rp-existing" - indicating this PR represents incremental changes to an existing resource provider
+  // - PR has label "typespec-incremental" - indicating this PR represents incremental changes to an TypeSpec implementation
   // - Authors self-attest the adherence to design best practices that are not automated.
-  // - Already blocks merge
-  //   - All required checks are passing (LintDiff, BreakingChanges)
-  //   - No swagger lintdiff suppressions are applied to the PR
-  //     - If any suppressions are applied to these PRs, they will go thru a manual approval process because
-  //       applying suppressions indicates that some of the mandatory guidelines are attempted to be violated.
-
+  // - The swagger-lintdiff required check is passing for the PR
+  // - If the PR has a SuppressionReviewRequired label, it must also have the Suppression-Approved label.
+  
   if (
     (await util.hasLabel(github, context, "ARMReview")) &&
     !(await util.hasLabel(github, context, "NotReadyForARMReview")) &&
     (await util.hasLabel(github, context, "ARMBestPractices")) &&
-    (await incrementalChangesToExistingResourceProvider(core)) &&
-    !(await typespecConversion(core))
+    (await util.hasLabel(github, context, "typespec-incremental")) &&
+    (await util.hasLabel(github, context, "rp-service-existing")) 
   ) {
+
+    if (await util.hasLabel(github, context, "SuppressionReviewRequired"))
+    {
+      if (!(await util.hasLabel(github, context, "Suppression-Approved")))
+      {
+        await util.removeLabelIfExists(github, context, core, "ARMAutoSignedOff");
+        return;
+      }  
+    }
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
   } else {
     await util.removeLabelIfExists(github, context, core, "ARMAutoSignedOff");

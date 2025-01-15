@@ -82,11 +82,11 @@ async function isExistingResourceProviderService(core) {
       } else {
         for (const file of changedRmFiles) {
           if (!(await specFolderExistsInTargetBranch(file))) {
-            console.log(`Appears to add a new RP: ${file}`);
+            console.log(`Appears to add atleast one new Resource Provider service: ${file}`);
             return false;
           }
         }
-        console.log("Appears to change an existing RPs, but adds no new RPs");
+        console.log("Appears to change an existing Resource Prvider service, but adds no new Resource Provider services");
         return true;
       }
     }
