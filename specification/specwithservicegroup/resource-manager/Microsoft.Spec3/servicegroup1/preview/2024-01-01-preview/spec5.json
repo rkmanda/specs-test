@@ -657,7 +657,7 @@
             ]
           }
         },
-        "provisioningState": {
+        "provisioningStat": {
           "$ref": "#/definitions/Azure.ResourceManager.ResourceProvisioningState",
           "description": "Provisioning state of last operation",
           "readOnly": true
