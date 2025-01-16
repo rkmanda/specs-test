@@ -85,9 +85,17 @@ async function doTypeSpecGeneratedFilesExistInTargetBranch(specsDir) {
       // Get all files in the target branch under the service directory
       const filesInTargetBranch = await util.execRoot(`git ls-tree -r HEAD^ --name-only ${specsDir}`);
 
+      // Filter files to only include *.json files
+      const jsonFiles = filesInTargetBranch.split('\n').filter(file => file.endsWith('.json'));
+
       // Check if any of the files are generated from TypeSpec
-      const files = filesInTargetBranch.split('\n');
-      for (const filePath of files) {
+      if (jsonFiles.length === 0) {
+        console.log(`No JSON files found in target branch for service directory: ${specsDir}. Returning false`);
+        return false;
+      }
+
+      // Check if any of the files are generated from TypeSpec
+      for (const filePath of jsonFiles) {
         if (await isSwaggerFileGeneratedFromTypeSpec(filePath, true)) {
           console.log(`File "${filePath}" in target branch is generated from TypeSpec.`);
           return true;
