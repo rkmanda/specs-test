@@ -44,7 +44,7 @@
     }
   ],
   "paths": {
-    "/subscriptions/{subscriptionId}/providers/Microsoft.Edge/sites": {
+    "/subscriptions/{subscriptionId}/providers/Microsoft.Edge/site": {
       "get": {
         "operationId": "SitesBySubscription_List",
         "description": "List Site resources by subscription ID",
