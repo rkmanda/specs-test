@@ -131,8 +131,6 @@ async function isSwaggerFileGeneratedFromTypeSpec(file, fromHead = false) {
         const tempDir = await mkdtemp(path.join(os.tmpdir(), 'git-'));
         // Read the file from the HEAD commit
         swagger = await util.execRoot(`git show HEAD:${file}`);
-/*        filePath = path.join(tempDir, path.basename(file));
-        await writeFile(filePath, fileContent, { encoding: "utf8" });*/
       } else {
         // Read the file from the current branch
         filePath = path.join(process.env.GITHUB_WORKSPACE || "", file);
