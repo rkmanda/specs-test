@@ -124,21 +124,21 @@ async function isSwaggerFileGeneratedFromTypeSpec(file, fromHead = false) {
     async () => {
 
       let isSwaggerTypeSpecGenerated = false;
-
+      let swagger;
       let filePath;
       if (fromHead) {
         // Create a temporary directory
         const tempDir = await mkdtemp(path.join(os.tmpdir(), 'git-'));
         // Read the file from the HEAD commit
-        const fileContent = await util.execRoot(`git show HEAD:${file}`);
-        filePath = path.join(tempDir, path.basename(file));
-        await writeFile(filePath, fileContent, { encoding: "utf8" });
+        swagger = await util.execRoot(`git show HEAD:${file}`);
+/*        filePath = path.join(tempDir, path.basename(file));
+        await writeFile(filePath, fileContent, { encoding: "utf8" });*/
       } else {
         // Read the file from the current branch
         filePath = path.join(process.env.GITHUB_WORKSPACE || "", file);
+        swagger = await readFile(filePath, { encoding: "utf8" });
       }
-
-      const swagger = await readFile(filePath, { encoding: "utf8" });
+     
       const swaggerObj = JSON.parse(swagger);
       if (swaggerObj["info"] && swaggerObj["info"]["x-typespec-generated"]) {
         console.log(`File "${file}" contains "info.x-typespec-generated"`);
