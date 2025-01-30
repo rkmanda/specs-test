@@ -24,6 +24,7 @@ module.exports = async ({ github, context, core }) => {
     await util.addLabelIfNotExists(github, context, core, "typespec-noop");
     await util.removeLabelIfExists(github, context, core, "typespec-new");
     await util.removeLabelIfExists(github, context, core, "typespec-incremental");
+    core.setOutPut("typespec-label", "typespec-noop");
     return;
   }
 
@@ -33,6 +34,7 @@ module.exports = async ({ github, context, core }) => {
     await util.addLabelIfNotExists(github, context, core, "typespec-noop");
     await util.removeLabelIfExists(github, context, core, "typespec-new");
     await util.removeLabelIfExists(github, context, core, "typespec-incremental");
+    core.setOutPut("typespec-label", "typespec-noop");
     return;
   }
 
@@ -41,10 +43,12 @@ module.exports = async ({ github, context, core }) => {
     await util.addLabelIfNotExists(github, context, core, "typespec-new");
     await util.removeLabelIfExists(github, context, core, "typespec-incremental");  
     await util.removeLabelIfExists(github, context, core, "typespec-noop");  
+    core.setOutPut("typespec-label", "typespec-new");
   } else {
     await util.addLabelIfNotExists(github, context, core, "typespec-incremental");
     await util.removeLabelIfExists(github, context, core, "typespec-new");  
     await util.removeLabelIfExists(github, context, core, "typespec-noop");  
+    core.setOutPut("typespec-label", "typespec-incremental");
   }
 };
 
